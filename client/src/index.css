@@ -1,0 +1,486 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Gill Sans", "Gill Sans MT", Calibri, "Trebuchet MS", sans-serif;
+  color-scheme: light dark;
+}
+
+:root {
+  --bg-color: #f4f3ff;
+  --btn-color: #646cff;
+  --dark-color: #242424;
+  --helper-color: #99b9ff;
+}
+
+html {
+  font-size: 62.5%;
+}
+
+/*? base style */
+
+body {
+  margin: 0;
+  /* min-width: 32rem; */
+  min-height: 100vh;
+}
+
+h1 {
+  font-size: 5.4rem;
+  line-height: 1.1;
+  font-weight: bold;
+}
+
+p,
+li,
+label,
+input,
+textarea {
+  font-size: 1.8rem;
+  line-height: 1.56;
+  letter-spacing: 0.1rem;
+  word-spacing: 0.06rem;
+}
+
+a {
+  font-weight: 500;
+  font-size: 1.8rem;
+  letter-spacing: 0.1rem;
+  color: var(--btn-color);
+  text-decoration: inherit;
+}
+
+li {
+  list-style: none;
+}
+.toastBody {
+  font-family: "Atlas Grotesk Web", Arial, Helvetica, sans-serif;
+  font-size: 1.8rem;
+}
+
+/*? layout Rule  */
+
+.container {
+  max-width: 140rem;
+  padding: 7rem 2.4rem;
+  margin: 0 auto;
+}
+
+.grid {
+  display: grid;
+  gap: 6.4rem;
+}
+
+.grid-two-cols {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.grid-four-cols {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+/*? Module Rules / Reusable */
+button {
+  text-transform: capitalize;
+  font-weight: 500px;
+  border: 0.1rem gray;
+  border-radius: 0.8rem;
+  letter-spacing: 0.1rem;
+  background-color: #e42d51;
+  cursor: pointer;
+  transition: border-color 0.3s;
+  margin-top: 3.2rem;
+  padding: 0.8rem 2.3rem;
+}
+.secondary-btn {
+  background-color: transparent;
+  margin-left: 2.2rem;
+}
+
+button:hover {
+  box-shadow: inset 0 0 0.5rem var(--bg-color);
+}
+
+a:hover,
+a.active {
+  color: rgb(228, 45, 81);
+}
+
+.section-hero {
+  &.grid {
+    align-items: center;
+  }
+
+  .hero-content {
+    & p {
+      margin: 2.4rem 0 4.8rem 0;
+      &:first-child {
+        margin: 0 0 1.2rem 0;
+      }
+    }
+  }
+}
+.hero-image {
+  display: flex;
+  justify-content: left;
+  & img {
+    width: 80%;
+    height: auto;
+  }
+}
+
+.hero-image1 {
+  display: flex;
+  justify-content: center;
+  & img {
+    width: 60%;
+    height: auto;
+  }
+}
+
+.section-analytics {
+  margin: 3.6rem 0;
+
+  & .container {
+    background-color: var(--bg-color);
+    border-radius: 1rem;
+  }
+
+  & .grid {
+    color: var(--dark-color);
+
+    & .div1 {
+      text-align: center;
+      border-right: 0.2rem solid var(--dark-color);
+
+      &:last-child {
+        border: none;
+      }
+      & h2 {
+        font-size: 4.8rem;
+      }
+      & p {
+        text-transform: capitalize;
+      }
+    }
+  }
+}
+
+/* Error Pge */
+#error-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#error-page .content {
+  max-width: 70rem;
+  text-align: center;
+}
+
+.content h2.header {
+  font-size: 18vw;
+  color: rgb(228, 45, 81);
+}
+
+.btns {
+  margin-top: 2rem;
+  text-transform: capitalize;
+  border: 0.2rem solid gray;
+  border-radius: 1.5rem;
+  letter-spacing: 0.1rem;
+  background-color: transparent;
+  cursor: pointer;
+  transition: border-color 0.3s;
+}
+.btns:hover {
+  box-shadow: inset 0 0 1rem #e42d51;
+  & NavLink {
+    font-weight: 500px;
+  }
+}
+
+/* About us page */
+
+.section-about {
+  padding: 0 3.2rem;
+
+  & .container {
+    & .hero-content {
+      & p {
+        & h3 {
+          text-decoration: underline #e42d51 1px;
+        }
+      }
+    }
+    /* background-color: #fff; */
+    padding-top: 3.2rem;
+    align-items: center;
+
+    & img {
+      width: 90%;
+      height: auto;
+    }
+    & .btn {
+      margin-top: 3.2rem;
+      padding: 0.8rem 2.3rem;
+    }
+  }
+}
+
+/* Contact us page */
+
+.section-contact {
+  padding: 0 3.2rem;
+  & .container {
+    padding-top: 0.2rem;
+    align-items: center;
+  }
+
+  & .container {
+    & img {
+      width: 80%;
+      height: auto;
+    }
+  }
+
+}
+ .section-form {
+    & label {
+      display: block;
+      margin: 2.4rem 0 0.8rem 0;
+      text-transform: capitalize;
+    }
+    & input {
+      width: 80%;
+      padding: 0.6rem 0.6rem;
+    }
+    & textarea {
+      width: 80%;
+    }
+
+    & button {
+      margin-top: 3.2rem;
+      padding: 0.8rem 1.3rem;
+    }
+  }
+
+/* services page */
+
+.section-services {
+  padding: 0 3.2rem;
+
+  .grid-three-cols {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  & .container {
+    margin-top: 0;
+    padding-top: 0;
+  }
+  & .card {
+    & .card-details {
+      text-align: center;
+      & h2 {
+        font-size: 2rem;
+      }
+      & p {
+        color: gray;
+      }
+    }
+  }
+  .card:hover {
+    box-shadow: 0 0 1rem blue;
+  }
+}
+
+/* registration page */
+
+.section-registration {
+  padding: 0 3.2rem;
+
+  & .container {
+    /* background-color: #fff; */
+    padding-top: 3.2rem;
+    align-items: center;
+
+    & img {
+      width: 80%;
+      height: auto;
+    }
+  }
+
+  & .registration-form {
+    & label {
+      display: block;
+      margin: 1.4rem 0 0.8rem 0;
+      text-transform: capitalize;
+    }
+    & input {
+      width: 75%;
+      padding: 0.6rem 0.6rem;
+    }
+
+    & button {
+      margin-top: 3.2rem;
+      padding: 0.8rem 1.3rem;
+    }
+  }
+}
+
+/* login page */
+.section-login {
+  padding: 0 3.2rem;
+
+  & .container {
+    padding-top: 3.2rem;
+    align-items: center;
+
+    & img {
+      width: 80%;
+      height: auto;
+    }
+  }
+}
+
+.login-form {
+  & label {
+    display: block;
+    margin: 2.4rem 0 0.8rem 0;
+    text-transform: capitalize;
+  }
+  & input {
+    width: 75%;
+    padding: 0.6rem 0.6rem;
+  }
+
+  & button {
+    margin-top: 3.2rem;
+    padding: 0.8rem 1.3rem;
+  }
+}
+/*Admin Table css*/
+
+ thead{
+font-size:1.7rem;
+letter-spacing: 0.1rem;
+padding:3rem;
+color:#242424;
+width:30rem;
+box-shadow:0 0.3rem 0 gray;
+padding: 10px;
+text-transform: capitalize;
+}
+
+td,th{
+  font-size:1.7rem;
+  letter-spacing: 0.1rem;
+  padding: 3rem;
+  color:#242424;
+  width:30rem;
+  text-align:center;
+  border: 1px solid gray;
+  text-align: left;
+  padding: 8px
+}
+
+table{
+  margin-top: 0;
+  background-color: rgb(238, 221, 187);
+  border-collapse: collapse;
+  border-radius: 1rem;
+  text-align: center;
+}
+th,
+td{
+  justify-content: center;
+  align-items: center;
+  text-align: center; 
+}
+table:hover{
+  box-shadow: 5px 5px  12px #e42d51;
+}
+
+/*Admin contact */
+.admin-contacts-section  tr{
+  
+  grid-template-rows: repeat(4, minmax(10rem, 1 fr));
+  align-items: center;
+  margin-bottom: 10px;
+  border-bottom: 4px solid transparent;
+  color: rgb(238, 221, 187);
+  padding: 2rem;
+  
+}
+
+body tr {
+  grid-template-columns: repeat(5, minmax(10rem, 1 fr));
+  align-items: center;
+  box-shadow: 0 0.3rem 0 gray;
+  margin-bottom: 10px;
+  border-bottom: 4px solid transparent;
+  color: rgb(238, 221, 187);
+}
+/*Admin update */
+.section-update{
+    display: block;
+    margin: 0 0 0.8rem 2.8rem;
+    text-transform: capitalize;
+  }
+  label {
+    display: block;
+    margin: 1.4rem 0 0.8rem 0;
+    text-transform: capitalize;
+  }
+ input {
+    width: 50%;
+    padding: 0.6rem 0.6rem;
+  }
+ button {
+    margin-top: 3.2rem;
+    padding: 0.8rem 1.3rem;
+  }
+
+/* media query section css  */
+
+@media (width <= 998px) {
+  .grid-two-cols {
+    grid-template-columns: 1fr;
+  }
+
+  .section-services {
+    & .grid-three-cols {
+      grid-template-columns: repeat(auto-fill, minmax(30rem, 1fr));
+    }
+  }
+
+  .section-registration {
+    & .container {
+      & .reg-img img {
+        width: 60%;
+        height: auto;
+      }
+    }
+  }
+}
+
+@media (width <= 798px) {
+  html {
+    font-size: 56.25%;
+  }
+
+  .section-registration {
+    & .container {
+      & .reg-img img {
+        width: 50%;
+        height: auto;
+      }
+    }
+
+    & .registration-form {
+      & input {
+        width: 100%;
+        padding: 0.6rem 0.6rem;
+      }
+    }
+  }
+}
