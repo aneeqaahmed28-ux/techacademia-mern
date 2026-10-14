@@ -2,7 +2,7 @@
 
 A MERN stack web app with user registration and login, a contact form, a course catalogue and an admin dashboard. Built while following the "MERN Stack in Hindi" course by Thapa Technical, then extended by me.
 
-> **My own additions:** [Write what you changed or added beyond the tutorial, in your own words. If you added nothing yet, delete this line and say so in interviews.]
+
 
 ## Features
 
