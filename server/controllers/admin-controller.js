@@ -6,6 +6,7 @@ const HttpError = require("../utils/http-error");
 const { publicUser } = require("../utils/public-user");
 const { isObjectId } = require("../utils/object-id");
 const { recordAudit } = require("../utils/audit");
+const { asQueryString } = require("../utils/as-string");
 
 const getAllUsers = async (_req, res, next) => {
   try {
@@ -40,10 +41,9 @@ const updateUserByID = async (req, res, next) => {
     }
 
     const update = {
-      username: req.body.username,
-      email:
-        typeof req.body.email === "string" ? req.body.email.toLowerCase() : req.body.email,
-      phone: req.body.phone,
+      username: asQueryString(req.body.username),
+      email: asQueryString(req.body.email).toLowerCase(),
+      phone: asQueryString(req.body.phone),
     };
 
     const updated = await User.findOneAndUpdate(

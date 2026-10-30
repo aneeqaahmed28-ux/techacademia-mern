@@ -37,12 +37,24 @@ async function createAdmin(overrides = {}) {
   });
 }
 
+function withCsrf(agent, token) {
+  for (const method of ["post", "patch", "put", "delete"]) {
+    const original = agent[method].bind(agent);
+    agent[method] = (url) => original(url).set("X-CSRF-Token", token);
+  }
+  return agent;
+}
+
 async function loginAgent(app, email, password) {
   const agent = request.agent(app);
   const response = await agent
     .post("/api/auth/login")
     .set("Origin", ORIGIN)
     .send({ email, password });
+  const token = cookieValue(response.headers["set-cookie"], "csrfToken");
+  if (token) {
+    withCsrf(agent, token);
+  }
   return { agent, response };
 }
 

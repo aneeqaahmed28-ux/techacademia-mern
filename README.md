@@ -88,6 +88,7 @@ Server (`server/.env`, copied from `server/.env.example`):
 | `RATE_LIMIT_WINDOW_MS` | Window for login, registration, and the contact form. |
 | `RATE_LIMIT_AUTH_MAX` | Attempts allowed per IP in that window for login and registration. |
 | `RATE_LIMIT_CONTACT_MAX` | Contact-form submissions per IP in that window. |
+| `RATE_LIMIT_API_MAX` | Requests per IP for the rest of the API. |
 | `TRUST_PROXY` | Set to `1` only behind a reverse proxy you control. |
 
 Client (`client/.env`, copied from `client/.env.example`):
@@ -124,7 +125,7 @@ The site is at http://localhost:8080. The API is also mapped to port 5000 for de
 
 ## Security
 
-Sessions are `HttpOnly` cookies. The access token lasts 15 minutes by default. The refresh token is stored only as a hash, rotates on use, and is revoked on logout and on reuse. Login and registration are rate limited. Helmet sets the baseline response headers. Admin edits allow only `username`, `email`, and `phone`, and successful admin deletes and edits are written to an audit log.
+Sessions are `HttpOnly` cookies. The access token lasts 15 minutes by default. The refresh token is stored only as a hash, rotates on use, and is revoked on logout and on reuse. A separate `csrfToken` cookie has to be echoed in the `X-CSRF-Token` header on any request that already has a session cookie. Login and registration are rate limited, and the rest of the API has a wider limit. Helmet sets the baseline response headers. Admin edits allow only `username`, `email`, and `phone`, and successful admin deletes and edits are written to an audit log.
 
 Before production:
 

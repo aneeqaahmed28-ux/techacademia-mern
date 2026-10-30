@@ -13,4 +13,10 @@ function createAuthLimiter(options = {}) {
   });
 }
 
-module.exports = { createAuthLimiter };
+function createApiLimiter() {
+  return createAuthLimiter({
+    max: Number(process.env.RATE_LIMIT_API_MAX) || 300,
+  });
+}
+
+module.exports = { createAuthLimiter, createApiLimiter };

@@ -58,6 +58,9 @@ describe("auth sessions", () => {
     expect(accessCookie).not.toMatch(/;\s*Secure/i);
     expect(refreshCookie).toMatch(/HttpOnly/i);
     expect(refreshCookie).toMatch(/Path=\/api\/auth/i);
+    const csrfCookie = cookies.find((entry) => entry.startsWith("csrfToken="));
+    expect(csrfCookie).toBeTruthy();
+    expect(csrfCookie).not.toMatch(/HttpOnly/i);
 
     const me = await request(app)
       .get("/api/auth/user")
@@ -175,6 +178,7 @@ describe("auth sessions", () => {
     const refreshed = await request(app)
       .post("/api/auth/refresh")
       .set("Origin", ORIGIN)
+      .set("X-CSRF-Token", cookieValue(firstCookies, "csrfToken"))
       .set("Cookie", cookieHeader(firstCookies));
     expect(refreshed.status).toBe(200);
     expect(refreshed.body.userData.email).toBe(user.email);
@@ -187,12 +191,14 @@ describe("auth sessions", () => {
     const replay = await request(app)
       .post("/api/auth/refresh")
       .set("Origin", ORIGIN)
+      .set("X-CSRF-Token", cookieValue(firstCookies, "csrfToken"))
       .set("Cookie", cookieHeader(firstCookies));
     expect(replay.status).toBe(401);
 
     const afterReuse = await request(app)
       .post("/api/auth/refresh")
       .set("Origin", ORIGIN)
+      .set("X-CSRF-Token", cookieValue(refreshed.headers["set-cookie"], "csrfToken"))
       .set("Cookie", cookieHeader(refreshed.headers["set-cookie"]));
     expect(afterReuse.status).toBe(401);
   });
@@ -206,7 +212,10 @@ describe("auth sessions", () => {
       .send({ email: user.email, password: "password123" });
     expect(login.status).toBe(200);
 
-    const logout = await agent.post("/api/auth/logout").set("Origin", ORIGIN);
+    const logout = await agent
+      .post("/api/auth/logout")
+      .set("Origin", ORIGIN)
+      .set("X-CSRF-Token", cookieValue(login.headers["set-cookie"], "csrfToken"));
     expect(logout.status).toBe(200);
 
     const me = await agent.get("/api/auth/user");

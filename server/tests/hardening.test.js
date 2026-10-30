@@ -91,6 +91,17 @@ describe("platform hardening", () => {
     expect(allowed.status).toBe(200);
   });
 
+  test("rejects a session that omits the CSRF header", async () => {
+    const { response } = await loginAgent(app, (await createAdmin()).email, "adminpass1");
+    const cookies = response.headers["set-cookie"];
+    const missing = await request(app)
+      .post("/api/auth/logout")
+      .set("Origin", ORIGIN)
+      .set("Cookie", cookies.map((entry) => entry.split(";")[0]).join("; "));
+    expect(missing.status).toBe(403);
+    expect(missing.body.message).toMatch(/CSRF/);
+  });
+
   test("turns registration failures into an error response instead of crashing", async () => {
     jest.spyOn(console, "error").mockImplementation(() => {});
     jest.spyOn(User, "create").mockRejectedValueOnce(new Error("db down"));

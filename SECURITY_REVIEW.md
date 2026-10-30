@@ -154,7 +154,7 @@ There is no `return` after `next()`, so execution falls through and bcrypt hashe
 
 Refresh rotates the refresh token. Replaying a rotated token revokes the rest of that user's refresh tokens. Logout revokes the presented refresh token and clears both cookies. Verification accepts only `HS256`. The access token carries `userId` and `tokenVersion`, not the role. `SameSite=None` is forced back to `Lax` unless `COOKIE_SECURE=true`.
 
-Cookie sessions need a CSRF control. Unsafe requests that already have a `Cookie` header must send an `Origin` on `CLIENT_ORIGIN`. Browsers set `Origin` and script cannot spoof it to another site. A non-browser client that has already stolen the cookie can set `Origin`; the check is there to stop the browser from attaching the cookie for another site.
+Cookie sessions need a CSRF control. Unsafe requests that already have a `Cookie` header must send an `Origin` on `CLIENT_ORIGIN`, and the `X-CSRF-Token` header must match the `csrfToken` cookie. That cookie is not `HttpOnly`, so the page can read it on the same origin; login, refresh, and `GET /api/auth/user` also return the value for a split frontend. Browsers set `Origin` and script on another site cannot read the cookie or the token. A non-browser client that has already stolen both can still call the API.
 
 **Residual.** `HttpOnly` stops a script from reading the token. It does not stop a script already running on this origin from calling the API. After logout, a copied access token still works until it expires (15 minutes by default). The refresh token does not.
 
@@ -167,6 +167,7 @@ Cookie sessions need a CSRF control. Unsafe requests that already have a `Cookie
 - `rejects an expired access token`
 - `sets the secure cookie flag when COOKIE_SECURE=true and refuses SameSite=None without it`
 - `rejects cookie-authenticated mutations that omit a configured origin`
+- `rejects a session that omits the CSRF header`
 
 ### F6 — Port and CORS origin were hardcoded
 
@@ -197,7 +198,7 @@ The user schema already uses `required: true` (commit `116e849`). The README sti
 
 **Impact.** The login endpoint can be used for online password guessing. Nothing slowed repeated attempts, and a missing user returned faster than a user whose password was checked with bcrypt (see F11).
 
-**Fix.** `express-rate-limit` is mounted on `POST /api/auth/login` and `POST /api/auth/register`. The default is 10 requests per 15 minutes per IP (`RATE_LIMIT_AUTH_MAX`, `RATE_LIMIT_WINDOW_MS`). The contact form has its own limiter (default 20). The test suite raises the cap so the other tests can run, and a separate app mounts the same helper with `max: 2` to prove the 429.
+**Fix.** `express-rate-limit` is mounted on every API router. Login and registration use a tighter limiter: 10 requests per 15 minutes per IP (`RATE_LIMIT_AUTH_MAX`, `RATE_LIMIT_WINDOW_MS`). Other routes use `RATE_LIMIT_API_MAX` (default 300). The contact form also has its own cap (default 20). The test suite raises the caps so the other tests can run, and a separate app mounts the same helper with `max: 2` to prove the 429.
 
 **Tests.**
 

@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { api } from "../utils/api";
+import { api, setCsrfToken } from "../utils/api";
 
 export const AuthContext = createContext();
 
@@ -21,6 +21,7 @@ export const AuthProvider = ({ children }) => {
         return null;
       }
       const data = await response.json();
+      setCsrfToken(data.csrfToken);
       const nextUser = data.userData || null;
       setUser(nextUser);
       return nextUser;

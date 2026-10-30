@@ -5,9 +5,10 @@ const validate = require("../middlewares/validate-middleware");
 const { signupSchema, loginSchema } = require("../validators/auth-validators");
 const authMiddleware = require("../middlewares/auth-middleware");
 const asyncHandler = require("../utils/async-handler");
-const { createAuthLimiter } = require("../middlewares/rate-limit");
+const { createAuthLimiter, createApiLimiter } = require("../middlewares/rate-limit");
 
 const authLimiter = createAuthLimiter();
+router.use(createApiLimiter());
 
 router.get("/", asyncHandler(authController.home));
 router.post(

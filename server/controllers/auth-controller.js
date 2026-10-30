@@ -9,12 +9,14 @@ const {
   refreshTtlMs,
 } = require("../utils/tokens");
 const { setAuthCookies, clearAuthCookies } = require("../utils/cookies");
+const { asQueryString } = require("../utils/as-string");
 
 warmDummyHash();
 
 async function issueSession(req, res, user) {
   const accessToken = signAccessToken(user);
   const refreshToken = newRefreshToken();
+  const csrfToken = newRefreshToken();
   await RefreshToken.create({
     user: user._id,
     tokenHash: hashToken(refreshToken),
@@ -22,7 +24,8 @@ async function issueSession(req, res, user) {
     userAgent: (req.get("user-agent") || "").slice(0, 200),
     ip: req.ip,
   });
-  setAuthCookies(res, { accessToken, refreshToken });
+  setAuthCookies(res, { accessToken, refreshToken, csrfToken });
+  return csrfToken;
 }
 
 const home = async (_req, res) => {
@@ -31,7 +34,10 @@ const home = async (_req, res) => {
 
 const register = async (req, res, next) => {
   try {
-    const { username, email, phone, password } = req.body;
+    const username = asQueryString(req.body.username);
+    const email = asQueryString(req.body.email);
+    const phone = asQueryString(req.body.phone);
+    const password = asQueryString(req.body.password);
     const existing = await User.findOne({ email });
     if (existing) {
       return res.status(409).json({ message: "An account with that email already exists" });
@@ -44,11 +50,12 @@ const register = async (req, res, next) => {
       password,
       isAdmin: false,
     });
-    await issueSession(req, res, user);
+    const csrfToken = await issueSession(req, res, user);
     return res.status(201).json({
       message: "Registration Successful",
       userId: user._id.toString(),
       userData: publicUser(user),
+      csrfToken,
     });
   } catch (error) {
     return next(error);
@@ -57,7 +64,8 @@ const register = async (req, res, next) => {
 
 const login = async (req, res, next) => {
   try {
-    const { email, password } = req.body;
+    const email = asQueryString(req.body.email);
+    const password = asQueryString(req.body.password);
     const user = await User.findOne({ email }).select("+password");
 
     if (!user) {
@@ -70,11 +78,12 @@ const login = async (req, res, next) => {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    await issueSession(req, res, user);
+    const csrfToken = await issueSession(req, res, user);
     return res.status(200).json({
       message: "Login Successful",
       userId: user._id.toString(),
       userData: publicUser(user),
+      csrfToken,
     });
   } catch (error) {
     return next(error);
@@ -126,10 +135,16 @@ const refresh = async (req, res, next) => {
       userAgent: (req.get("user-agent") || "").slice(0, 200),
       ip: req.ip,
     });
-    setAuthCookies(res, { accessToken: signAccessToken(user), refreshToken: nextRaw });
+    const csrfToken = newRefreshToken();
+    setAuthCookies(res, {
+      accessToken: signAccessToken(user),
+      refreshToken: nextRaw,
+      csrfToken,
+    });
     return res.status(200).json({
       message: "Token refreshed",
       userData: publicUser(user),
+      csrfToken,
     });
   } catch (error) {
     return next(error);
@@ -154,7 +169,10 @@ const logout = async (req, res, next) => {
 };
 
 const user = async (req, res) => {
-  return res.status(200).json({ userData: publicUser(req.user) });
+  return res.status(200).json({
+    userData: publicUser(req.user),
+    csrfToken: req.cookies?.csrfToken,
+  });
 };
 
 module.exports = { home, register, login, refresh, logout, user };

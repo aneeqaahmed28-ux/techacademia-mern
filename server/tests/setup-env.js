@@ -8,5 +8,6 @@ process.env.COOKIE_SAMESITE = "lax";
 process.env.RATE_LIMIT_AUTH_MAX = "1000";
 process.env.RATE_LIMIT_WINDOW_MS = "900000";
 process.env.RATE_LIMIT_CONTACT_MAX = "1000";
+process.env.RATE_LIMIT_API_MAX = "10000";
 process.env.BCRYPT_SALT_ROUNDS = "4";
 process.env.TRUST_PROXY = "0";

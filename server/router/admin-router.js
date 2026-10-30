@@ -5,8 +5,10 @@ const adminMiddleware = require("../middlewares/admin-middleware");
 const validate = require("../middlewares/validate-middleware");
 const { updateUserSchema } = require("../validators/auth-validators");
 const asyncHandler = require("../utils/async-handler");
+const { createApiLimiter } = require("../middlewares/rate-limit");
 
 const router = express.Router();
+router.use(createApiLimiter());
 
 router.get(
   "/users",

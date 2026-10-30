@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../store/auth";
 import { toast } from "react-toastify";
-import { api } from "../utils/api";
+import { api, setCsrfToken } from "../utils/api";
 
 export const Login = () => {
   const [user, setUser] = useState({
@@ -33,6 +33,7 @@ export const Login = () => {
 
       if (response.ok) {
         toast.success("login successful");
+        setCsrfToken(res_data.csrfToken);
         applySession(res_data.userData);
         setUser({ email: "", password: "" });
         navigate("/");

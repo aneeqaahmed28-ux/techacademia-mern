@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../store/auth";
 import { toast } from "react-toastify";
-import { api } from "../utils/api";
+import { api, setCsrfToken } from "../utils/api";
 
 export const Register = () => {
   const [user, setUser] = useState({
@@ -34,6 +34,7 @@ export const Register = () => {
       const res_data = await response.json();
       if (response.ok) {
         toast.success("registration successful");
+        setCsrfToken(res_data.csrfToken);
         applySession(res_data.userData);
         setUser({
           username: "",
