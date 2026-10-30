@@ -1,60 +1,52 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../store/auth";
-import {toast } from "react-toastify";
+import { toast } from "react-toastify";
+import { api } from "../utils/api";
 
 export const Register = () => {
   const [user, setUser] = useState({
-    username: " ",
+    username: "",
     email: "",
     phone: "",
     password: "",
   });
 
- 
   const navigate = useNavigate();
-  const {storeTokenInLS}= useAuth();
+  const { applySession } = useAuth();
+
   const handleInput = (e) => {
-    console.log(e);
-    let name= e.target.name;
-    let value= e.target.value;
+    const name = e.target.name;
+    const value = e.target.value;
     setUser({
-        ...user,
-        [name]:value,
-    })
+      ...user,
+      [name]: value,
+    });
   };
 
-  const handleSubmit= async (e)=>{
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(user);
-    try{
-    const response = await fetch("http://localhost:5000/api/auth/register",{
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(user),
-    });
-    const res_data= await response.json();
-  //console.log("response from server", res_data);
-if(response.ok){
-  toast.success("registration successful");
-  
-  storeTokenInLS(res_data.token);
-  setUser({username: " ",
-    email: " ",
-    phone: " ",
-    password: " ",
-  })
-navigate("/");
-} else{
-  toast.error(res_data.extraDetails?res_data.extraDetails: res_data.message);
-}
-
-    console.log(response);
-}
-    catch(error){
-        console.log("registration error:", error);
+    try {
+      const response = await api("/api/auth/register", {
+        method: "POST",
+        json: user,
+      });
+      const res_data = await response.json();
+      if (response.ok) {
+        toast.success("registration successful");
+        applySession(res_data.userData);
+        setUser({
+          username: "",
+          email: "",
+          phone: "",
+          password: "",
+        });
+        navigate("/");
+      } else {
+        toast.error(res_data.extraDetails ? res_data.extraDetails : res_data.message);
+      }
+    } catch (error) {
+      console.error(error);
     }
   };
 
@@ -83,6 +75,7 @@ navigate("/");
                       name="username"
                       id="username"
                       required
+                      autoComplete="username"
                       value={user.username}
                       onChange={handleInput}
                     />
@@ -95,6 +88,7 @@ navigate("/");
                       name="email"
                       id="email"
                       required
+                      autoComplete="email"
                       value={user.email}
                       onChange={handleInput}
                     />
@@ -103,11 +97,11 @@ navigate("/");
                   <div>
                     <label htmlFor="phone"> Phone </label>
                     <input
-                      type="number"
+                      type="tel"
                       name="phone"
                       id="phone"
-                      min = "0"
                       required
+                      autoComplete="tel"
                       value={user.phone}
                       onChange={handleInput}
                     />
@@ -120,6 +114,7 @@ navigate("/");
                       name="password"
                       id="password"
                       required
+                      autoComplete="new-password"
                       value={user.password}
                       onChange={handleInput}
                     />

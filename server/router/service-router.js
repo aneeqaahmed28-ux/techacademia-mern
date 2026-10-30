@@ -1,13 +1,8 @@
-// const express = require("express");
-// const services = require("../controllers/service-controller");
-// const router = express.Router();
-
-// router.route("/service").get(services);
-// module.exports = router;
 const express = require("express");
 const router = express.Router();
 const services = require("../controllers/service-controller");
+const asyncHandler = require("../utils/async-handler");
 
-router.route("/services").get(services);
+router.get("/services", asyncHandler(services));
 
 module.exports = router;

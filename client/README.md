@@ -1,8 +1,10 @@
-# React + Vite
+# TechAcademia client
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React and Vite frontend for TechAcademia. Setup, environment variables, and the security notes are in the [repository README](../README.md).
 
-Currently, two official plugins are available:
+```bash
+npm install
+npm run dev
+```
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+The dev server proxies `/api` to `http://localhost:5000`. Leave `VITE_API_URL` empty unless the browser should call another API origin. See `.env.example`.

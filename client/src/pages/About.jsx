@@ -1,15 +1,19 @@
 import { NavLink } from "react-router-dom";
-//import { useAuth } from "../store/auth";
+import { useAuth } from "../store/auth";
 
 export const About = () => {
- // const {user}= useAuth();
+  const { user } = useAuth();
   return (
     <>
       <main>
         <section className="section-about">
           <div className="container grid grid-two-cols">
             <div className="hero-content">
-        <p>Hello there, welcome to TechAcademia</p>
+        <p>
+          {user?.username
+            ? `Hello ${user.username}, welcome to TechAcademia`
+            : "Hello there, welcome to TechAcademia"}
+        </p>
               <h1>Why Choose Us? </h1>
                <br/>
                 <p>

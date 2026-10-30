@@ -1,51 +1,34 @@
 import { useEffect, useState } from "react";
-
-import { useAuth } from "../store/auth";
-
 import { Link } from "react-router-dom";
+import { api } from "../utils/api";
 
 export const AdminUsers = () => {
   const [users, setUsers] = useState([]);
 
-  const { authorizationToken } = useAuth();
-
   const getAllUserData = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/admin/users ", {
-        method: "GET",
-        headers: {
-          Authorization: authorizationToken,
-        },
-      });
-
+      const response = await api("/api/admin/users");
+      if (!response.ok) {
+        setUsers([]);
+        return;
+      }
       const data = await response.json();
-      console.log("user's data:", data);
-      setUsers(data);
+      setUsers(Array.isArray(data) ? data : []);
     } catch (error) {
-      console.log("error in admin user", error);
+      console.error(error);
     }
   };
 
   const deleteUser = async (id) => {
     try {
-      const response = await fetch(
-        `http://localhost:5000/api/admin/users/delete/${id}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: authorizationToken,
-          },
-        }
-      );
-
-      const data = await response.json();
-      console.log("user's data:", data);
-
+      const response = await api(`/api/admin/users/delete/${id}`, {
+        method: "DELETE",
+      });
       if (response.ok) {
         getAllUserData();
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
 
@@ -72,21 +55,19 @@ export const AdminUsers = () => {
             </thead>
 
             <tbody>
-              {users.map((curUser, index) => {
+              {users.map((curUser) => {
                 return (
-                  <tr key={index}>
+                  <tr key={curUser._id}>
                     <td>{curUser.username}</td>
                     <td>{curUser.email}</td>
                     <td>{curUser.phone}</td>
                     <td>
-                    <Link to={`/admin/users/${curUser._id}/edit`}>   
-                      <button>Edit</button>
+                      <Link to={`/admin/users/${curUser._id}/edit`}>
+                        <button>Edit</button>
                       </Link>
                     </td>
                     <td>
-                      <button onClick={() => deleteUser(curUser._id)}>
-                        Delete
-                      </button>
+                      <button onClick={() => deleteUser(curUser._id)}>Delete</button>
                     </td>
                   </tr>
                 );

@@ -13,6 +13,7 @@ import { AdminLayout } from "./components/layouts/Admin-Layout";
 import { AdminUsers } from "./pages/Admin-Users";
 import { AdminContacts } from "./pages/Admin-Contact";
 import { AdminUpdate } from "./pages/Admin-Update";
+import { AdminAudit } from "./pages/Admin-Audit";
 
 
 
@@ -36,13 +37,14 @@ const App = () => {
 
           <Route path="/logout" element = {<Logout/>}/>
 
-          <Route path="*" element={<Error />} />
-
           <Route path="/admin" element={<AdminLayout/>}>
              <Route path = "users"  element={<AdminUsers/>}/>
              <Route path = "contact"  element={<AdminContacts/>}/>
+             <Route path = "audit"  element={<AdminAudit/>}/>
              <Route path = "users/:id/edit"  element={<AdminUpdate/>}/>
           </Route>
+
+          <Route path="*" element={<Error />} />
 
         </Routes>
         <Footer />

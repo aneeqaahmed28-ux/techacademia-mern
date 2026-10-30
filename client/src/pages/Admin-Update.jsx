@@ -1,11 +1,9 @@
 import { useEffect, useState } from "react";
-import { useAuth } from "../store/auth";
 import { useParams } from "react-router-dom";
 import { toast } from "react-toastify";
-
+import { api } from "../utils/api";
 
 export const AdminUpdate = () => {
-  
   const [data, setData] = useState({
     username: "",
     email: "",
@@ -13,117 +11,110 @@ export const AdminUpdate = () => {
   });
 
   const params = useParams();
-  console.log("single user params:", params);
-  const { authorizationToken } = useAuth();
-
-  const getSingleUserData = async () => {
-
-    try {
-      const response = await fetch(
-        `http://localhost:5000/api/admin/users/${params.id}`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: authorizationToken,
-          },
-        }
-      );
-
-      const data = await response.json();
-      console.log(`user single data: ${data}`);
-      setData(data);
-    } catch (error) {
-      console.log(error);
-    }
-  };
 
   useEffect(() => {
-    getSingleUserData();
-  }, []);
+    let cancelled = false;
 
-   const handleInput = (e) => {
-   let name = e.target.name;
-   let value = e.target.value;
+    (async () => {
+      try {
+        const response = await api(`/api/admin/users/${params.id}`);
+        if (!response.ok) return;
+        const body = await response.json();
+        if (cancelled) return;
+        setData({
+          username: body.username || "",
+          email: body.email || "",
+          phone: body.phone || "",
+        });
+      } catch (error) {
+        console.error(error);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [params.id]);
+
+  const handleInput = (e) => {
+    const name = e.target.name;
+    const value = e.target.value;
     setData({
-     ...data,
-     [name]: value,
+      ...data,
+      [name]: value,
     });
-   };
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch(`http://localhost:5000/api/admin/users/update/${params.id}`,
-        {
-          method: "PATCH",
-          headers: {
-          "Content-Type": "application/json",
-            Authorization: authorizationToken,
-          },
-          body: JSON.stringify(data),
-        });
+      const response = await api(`/api/admin/users/update/${params.id}`, {
+        method: "PATCH",
+        json: {
+          username: data.username,
+          email: data.email,
+          phone: data.phone,
+        },
+      });
+      const body = await response.json().catch(() => ({}));
 
-        console.log("from admin-update", response);
-
-      if(response.ok) {
+      if (response.ok) {
         toast.success("Updated successfully");
       } else {
-        toast.error("Not updated ");
+        toast.error(body.extraDetails || body.message || "Not updated");
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
+
   return (
     <>
       <section>
         <div className="admin-update-content container">
           <h1 className="main-heading">Admin - User Update</h1>
         </div>
-          <section className="section-update">
-            
-            <form onSubmit ={handleSubmit}>
-              <div>
-                <label htmlFor="username"> User Name </label>
-                <input
-                  type="username"
-                  name="username"
-                  id="username"
-                  required
-                  value={data.username}
-                  onChange={handleInput}
-                />
-              </div>
+        <section className="section-update">
+          <form onSubmit={handleSubmit}>
+            <div>
+              <label htmlFor="username"> User Name </label>
+              <input
+                type="text"
+                name="username"
+                id="username"
+                required
+                value={data.username}
+                onChange={handleInput}
+              />
+            </div>
 
-              <div>
-                <label htmlFor="email"> Email </label>
-                <input
-                  type="email"
-                  name="email"
-                  id="email"
-                  required
-                  value={data.email}
-                  onChange={handleInput}
-                />
-              </div>
+            <div>
+              <label htmlFor="email"> Email </label>
+              <input
+                type="email"
+                name="email"
+                id="email"
+                required
+                value={data.email}
+                onChange={handleInput}
+              />
+            </div>
 
-              <div>
-                <label htmlFor="phone"> Phone </label>
-                <input
-                  type="phone"
-                  name="phone"
-                  id="phone"
-                  required
-                  value={data.phone}
-                  onChange={handleInput}
-                />
-              </div>
-            <button type="submit ">Update </button>
-            </form>
-            <br />
-
-          </section>
-        
+            <div>
+              <label htmlFor="phone"> Phone </label>
+              <input
+                type="tel"
+                name="phone"
+                id="phone"
+                required
+                value={data.phone}
+                onChange={handleInput}
+              />
+            </div>
+            <button type="submit">Update</button>
+          </form>
+          <br />
+        </section>
       </section>
     </>
   );

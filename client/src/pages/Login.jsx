@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../store/auth";
-import { toast } from 'react-toastify';
+import { toast } from "react-toastify";
+import { api } from "../utils/api";
 
 export const Login = () => {
   const [user, setUser] = useState({
@@ -10,12 +11,11 @@ export const Login = () => {
   });
 
   const navigate = useNavigate();
-  const {storeTokenInLS} = useAuth();
-  
+  const { applySession } = useAuth();
+
   const handleInput = (e) => {
-    console.log(e);
-    let name = e.target.name;
-    let value = e.target.value;
+    const name = e.target.name;
+    const value = e.target.value;
     setUser({
       ...user,
       [name]: value,
@@ -25,31 +25,22 @@ export const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch("http://localhost:5000/api/auth/login", {
+      const response = await api("/api/auth/login", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(user),
+        json: user,
       });
-      console.log("from login form", response);
-      const res_data= await response.json();
+      const res_data = await response.json();
 
       if (response.ok) {
-        toast.success("login successful")
-       
-        storeTokenInLS(res_data.token);
-        
-        setUser({email:" ", password:" "})
-
+        toast.success("login successful");
+        applySession(res_data.userData);
+        setUser({ email: "", password: "" });
         navigate("/");
-      }
-      else{
-        toast.error(res_data.extraDetails?res_data.extraDetails: res_data.message);
-        console.log("Invalid Credentials");
+      } else {
+        toast.error(res_data.extraDetails ? res_data.extraDetails : res_data.message);
       }
     } catch (error) {
-      console.log("Error from login form",error);
+      console.error(error);
     }
   };
 
@@ -79,6 +70,7 @@ export const Login = () => {
                       placeholder="Enter email"
                       id="email"
                       required
+                      autoComplete="username"
                       value={user.email}
                       onChange={handleInput}
                     />
@@ -91,6 +83,7 @@ export const Login = () => {
                       placeholder="Enter password"
                       id="password"
                       required
+                      autoComplete="current-password"
                       value={user.password}
                       onChange={handleInput}
                     />
