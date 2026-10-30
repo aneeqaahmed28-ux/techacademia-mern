@@ -1,0 +1,13 @@
+process.env.NODE_ENV = "test";
+process.env.JWT_SECRET_KEY = "test-only-jwt-secret-key-32chars!";
+process.env.JWT_ACCESS_EXPIRES = "15m";
+process.env.JWT_REFRESH_EXPIRES_DAYS = "7";
+process.env.CLIENT_ORIGIN = "http://localhost:5173";
+process.env.COOKIE_SECURE = "false";
+process.env.COOKIE_SAMESITE = "lax";
+process.env.RATE_LIMIT_AUTH_MAX = "1000";
+process.env.RATE_LIMIT_WINDOW_MS = "900000";
+process.env.RATE_LIMIT_CONTACT_MAX = "1000";
+process.env.RATE_LIMIT_API_MAX = "10000";
+process.env.BCRYPT_SALT_ROUNDS = "4";
+process.env.TRUST_PROXY = "0";

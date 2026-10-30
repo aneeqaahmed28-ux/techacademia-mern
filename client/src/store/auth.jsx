@@ -1,85 +1,85 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { api, setCsrfToken } from "../utils/api";
 
 export const AuthContext = createContext();
 
-
 export const AuthProvider = ({ children }) => {
-   const [token, setToken] = useState(localStorage.getItem("token"));
- const [user, setUser] = useState("");
- const [services, setServices]= useState([]);
-const authorizationToken = `Bearer ${token}`;
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [services, setServices] = useState([]);
 
-  //function to stored the token in local storage
-  const storeTokenInLS = (serverToken) => {
-    setToken(serverToken);
-    return localStorage.setItem("token", serverToken);
-  };
+  const applySession = useCallback((userData) => {
+    setUser(userData || null);
+    setLoading(false);
+  }, []);
 
-  let isLoggedIn = !!token;
-  //console.log(token);
-  //console.log("isLoggedin ", isLoggedIn);
-
-  //   to check whether is loggedIn or not
-  const LogoutUser = () => {
-    setToken("");
-    return localStorage.removeItem("token");
-  };
-
-
-
- //Authentication - getting currently loggin user data.
- const userAuthentication = async () => {
-  try {
-    const response = await fetch("http://localhost:5000/api/auth/user", {
-      method: "GET",
-      headers: {
-        Authorization: authorizationToken ,
-      },
-    });
-
-    if (response.ok) {
+  const loadUser = useCallback(async () => {
+    try {
+      const response = await api("/api/auth/user");
+      if (!response.ok) {
+        setUser(null);
+        return null;
+      }
       const data = await response.json();
-
-      // to get the user data 
-      setUser(data.userData);
-    } else {
-      console.error("Error fetching user data");
+      setCsrfToken(data.csrfToken);
+      const nextUser = data.userData || null;
+      setUser(nextUser);
+      return nextUser;
+    } catch (error) {
+      console.error(error);
+      setUser(null);
+      return null;
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    console.log(error);
-  }
-};
+  }, []);
 
-useEffect(() => {
-  userAuthentication();
-}, []);
-
-const getServices = async () =>{
-  try {
-    const response= await fetch("http://localhost:5000/api/data/services",{
-      method: "GET",
-    });
-
-    if (response.ok){
-      const data = await response.json();
-     // console.log(data.msg);
-      setServices(data.msg);
+  const logout = useCallback(async () => {
+    try {
+      await api("/api/auth/logout", { method: "POST" });
+    } catch (error) {
+      console.error(error);
     }
-    
-  } catch (error) {
-    console.log(`error getting services from db ${error}`);
-  }
-}
+    setUser(null);
+  }, []);
 
-useEffect(()=>{
-  getServices();
-},[]);
+  useEffect(() => {
+    loadUser();
+  }, [loadUser]);
 
-return (
-    <AuthContext.Provider value={{ isLoggedIn, storeTokenInLS, LogoutUser, services, authorizationToken}}>
-      {children}
-    </AuthContext.Provider>
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const response = await api("/api/data/services");
+        if (!response.ok) return;
+        const data = await response.json();
+        const rows = Array.isArray(data.services) ? data.services : data.msg;
+        if (!cancelled) {
+          setServices(Array.isArray(rows) ? rows : []);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const value = useMemo(
+    () => ({
+      isLoggedIn: Boolean(user),
+      user,
+      loading,
+      services,
+      applySession,
+      logout,
+    }),
+    [user, loading, services, applySession, logout]
   );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => {

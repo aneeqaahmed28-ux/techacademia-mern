@@ -7,7 +7,7 @@ export const Services = () => {
         <h1 className="main-heading">Services</h1>
       </div>
       <div className="container grid grid-three-cols">
-        {services.map((curElement, index) => {
+        {(Array.isArray(services) ? services : []).map((curElement, index) => {
           const { name, category, duration, level, instructor } = curElement;
 
           return (

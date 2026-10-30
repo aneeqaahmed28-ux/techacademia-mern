@@ -1,19 +1,57 @@
 const express = require("express");
-const adminController= require("../controllers/admin-controller");
+const adminController = require("../controllers/admin-controller");
 const authMiddleware = require("../middlewares/auth-middleware");
 const adminMiddleware = require("../middlewares/admin-middleware");
+const validate = require("../middlewares/validate-middleware");
+const { updateUserSchema } = require("../validators/auth-validators");
+const asyncHandler = require("../utils/async-handler");
+const { createApiLimiter } = require("../middlewares/rate-limit");
+
 const router = express.Router();
+router.use(createApiLimiter());
 
+router.get(
+  "/users",
+  authMiddleware,
+  adminMiddleware,
+  asyncHandler(adminController.getAllUsers)
+);
+router.get(
+  "/users/:id",
+  authMiddleware,
+  adminMiddleware,
+  asyncHandler(adminController.getUserByID)
+);
+router.patch(
+  "/users/update/:id",
+  authMiddleware,
+  adminMiddleware,
+  validate(updateUserSchema),
+  asyncHandler(adminController.updateUserByID)
+);
+router.delete(
+  "/users/delete/:id",
+  authMiddleware,
+  adminMiddleware,
+  asyncHandler(adminController.deleteUserByID)
+);
+router.get(
+  "/contacts",
+  authMiddleware,
+  adminMiddleware,
+  asyncHandler(adminController.getAllContacts)
+);
+router.delete(
+  "/contacts/delete/:id",
+  authMiddleware,
+  adminMiddleware,
+  asyncHandler(adminController.deleteContactByID)
+);
+router.get(
+  "/audit",
+  authMiddleware,
+  adminMiddleware,
+  asyncHandler(adminController.getAuditLogs)
+);
 
-router.route("/users").get(authMiddleware, adminMiddleware, adminController.getAllUsers);
-
-router.route("/users/:id").get(authMiddleware, adminMiddleware, adminController.getUserByID);
-
-router.route("/users/update/:id").patch(authMiddleware, adminMiddleware, adminController.updateUserByID);
-
-router.route("/users/delete/:id").delete(authMiddleware, adminMiddleware, adminController.deleteUserByID);
-
-router.route("/contacts").get(authMiddleware, adminMiddleware, adminController.getAllContacts);
-
-router.route("/contacts/delete/:id").delete(authMiddleware, adminMiddleware, adminController.deleteContactByID);
 module.exports = router;

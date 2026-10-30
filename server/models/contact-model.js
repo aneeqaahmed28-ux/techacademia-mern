@@ -1,9 +1,13 @@
 const { Schema, model } = require("mongoose");
-const contactSchema = new Schema({
-  username: { type: String, required: true },
-  email: { type: String, required: true },
-  message: { type: String, required: true },
-});
-// create a new collections(Model)
-const Contact = new model("Contact", contactSchema);
+
+const contactSchema = new Schema(
+  {
+    username: { type: String, required: true, maxlength: 255 },
+    email: { type: String, required: true, maxlength: 255 },
+    message: { type: String, required: true, maxlength: 2000 },
+  },
+  { timestamps: true }
+);
+
+const Contact = model("Contact", contactSchema);
 module.exports = Contact;

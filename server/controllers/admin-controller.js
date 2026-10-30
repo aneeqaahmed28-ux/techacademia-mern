@@ -1,81 +1,149 @@
 const User = require("../models/user-model");
 const Contact = require("../models/contact-model");
+const RefreshToken = require("../models/refresh-token-model");
+const AuditLog = require("../models/audit-log-model");
+const HttpError = require("../utils/http-error");
+const { publicUser } = require("../utils/public-user");
+const { isObjectId } = require("../utils/object-id");
+const { recordAudit } = require("../utils/audit");
+const { asQueryString } = require("../utils/as-string");
 
+const getAllUsers = async (_req, res, next) => {
+  try {
+    const users = await User.find().select("-password");
+    return res.status(200).json(users.map(publicUser));
+  } catch (error) {
+    return next(error);
+  }
+};
 
-//Getting all users from db
-const getAllUsers = async(req,res) =>{
-try {
-const users= await User.find({},{password:0});
-console.log(users);
-    if(!users || users.length === 0){
-        return res.status(404).json({message: "page not found"});
-    }
-
-    res.status(200).json(users);
-} catch (error) {
-    next(error);
-}
-}
-
-//getting a user by id
-const getUserByID = async( req, res) =>{
-try {
+const getUserByID = async (req, res, next) => {
+  try {
     const id = req.params.id;
-   const data = await User.findOne({_id: id}, {password:0});
-    return res.status(200).json(data);
-} catch (error) {
-    next(error);
-}
-}
-//updating a user by id
-const updateUserByID = async( req, res) =>{
-    try {
-        const id = req.params.id;
-        const updatedUserData = req.body;
-       const updatedData = await User.updateOne({_id: id}, {
-        $set: updatedUserData});
-
-        return res.status(200).json(updatedData);
-    } catch (error) {
-        next(error);
+    if (!isObjectId(id)) {
+      return next(new HttpError(400, "Invalid id"));
     }
+    const user = await User.findById(id).select("-password");
+    if (!user) {
+      return next(new HttpError(404, "User not found"));
     }
+    return res.status(200).json(publicUser(user));
+  } catch (error) {
+    return next(error);
+  }
+};
 
-//Getting all contacts page data from db
-const getAllContacts = async (req,res) =>{
-    try {
-        const contacts = await Contact.find();
-        if (!contacts || contacts.length===0){
-           return res.status(404).json({message: "Contact list not found"});
-        }
-        return res.status(200).json(contacts);
-    } catch (error) {
-        next(error)
-    }
-}
-
-
-//delete a user by id
-const deleteUserByID = async( req, res) =>{
-    try {
-        const id = req.params.id;
-
-        await User.deleteOne({_id: id});
-        return res.status(200).json({message: "User deleted successfully"});
-    } catch (error) {
-        next(error);
-    }
+const updateUserByID = async (req, res, next) => {
+  try {
+    const id = req.params.id;
+    if (!isObjectId(id)) {
+      return next(new HttpError(400, "Invalid id"));
     }
 
-//delete a contact by id
-    const deleteContactByID = async( req, res) =>{
-        try {
-            const id = req.params.id;
-            await Contact.deleteOne({_id: id});
-            return res.status(200).json({message: "Contact deleted successfully"});
-        } catch (error) {
-            next(error);
-        }
-        }
+    const update = {
+      username: asQueryString(req.body.username),
+      email: asQueryString(req.body.email).toLowerCase(),
+      phone: asQueryString(req.body.phone),
+    };
 
-module.exports= {getAllUsers, getAllContacts, deleteUserByID, getUserByID, updateUserByID, deleteContactByID};
+    const updated = await User.findOneAndUpdate(
+      { _id: id },
+      { $set: update },
+      { new: true, runValidators: true }
+    ).select("-password");
+
+    if (!updated) {
+      return next(new HttpError(404, "User not found"));
+    }
+
+    await recordAudit(req, {
+      action: "USER_UPDATE",
+      targetType: "User",
+      targetId: id,
+      metadata: { fields: ["username", "email", "phone"] },
+    });
+
+    return res.status(200).json({
+      message: "User updated",
+      userData: publicUser(updated),
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const deleteUserByID = async (req, res, next) => {
+  try {
+    const id = req.params.id;
+    if (!isObjectId(id)) {
+      return next(new HttpError(400, "Invalid id"));
+    }
+    if (req.user._id.toString() === id) {
+      return next(new HttpError(400, "You cannot delete your own account while signed in"));
+    }
+
+    const deleted = await User.deleteOne({ _id: id });
+    if (!deleted.deletedCount) {
+      return next(new HttpError(404, "User not found"));
+    }
+
+    await RefreshToken.deleteMany({ user: id });
+    await recordAudit(req, {
+      action: "USER_DELETE",
+      targetType: "User",
+      targetId: id,
+    });
+    return res.status(200).json({ message: "User deleted successfully" });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const getAllContacts = async (_req, res, next) => {
+  try {
+    const contacts = await Contact.find().sort({ createdAt: -1 });
+    return res.status(200).json(contacts);
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const deleteContactByID = async (req, res, next) => {
+  try {
+    const id = req.params.id;
+    if (!isObjectId(id)) {
+      return next(new HttpError(400, "Invalid id"));
+    }
+    const deleted = await Contact.deleteOne({ _id: id });
+    if (!deleted.deletedCount) {
+      return next(new HttpError(404, "Contact not found"));
+    }
+    await recordAudit(req, {
+      action: "CONTACT_DELETE",
+      targetType: "Contact",
+      targetId: id,
+    });
+    return res.status(200).json({ message: "Contact deleted successfully" });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const getAuditLogs = async (_req, res, next) => {
+  try {
+    const logs = await AuditLog.find().sort({ createdAt: -1 }).limit(100).select("-__v");
+    return res.status(200).json(logs);
+  } catch (error) {
+    return next(error);
+  }
+};
+
+module.exports = {
+  getAllUsers,
+  getAllContacts,
+  deleteUserByID,
+  getUserByID,
+  updateUserByID,
+  deleteContactByID,
+  getAuditLogs,
+};

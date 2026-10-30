@@ -1,30 +1,35 @@
-const jwt = require("jsonwebtoken");
 const User = require("../models/user-model");
+const { verifyAccessToken } = require("../utils/tokens");
 
-
-//to check wheather user has token or not
 const authMiddleware = async (req, res, next) => {
-  const token = req.header("Authorization");
+  const token = req.cookies?.accessToken;
 
   if (!token) {
-    console.log("token not found");
-    return res.status(401).json({ msg: "Unauthorized HTTP, Token not provided" });
+    return res.status(401).json({ message: "Unauthorized, token not provided" });
   }
-
-  const jwtToken = token.replace("Bearer", "").trim();
 
   try {
-    const isVerified = jwt.verify(jwtToken, process.env.JWT_SECRET_KEY);
-    const userData = await User.findOne({ email: isVerified.email }).select({
-      password: 0,
-    });
-    //console.log("token from auth-middleware", userData);
-    req.user = userData;
+    const decoded = verifyAccessToken(token);
+    if (!decoded?.userId) {
+      return res.status(401).json({ message: "Unauthorized, invalid token." });
+    }
+
+    const user = await User.findById(decoded.userId).select("-password");
+    if (!user) {
+      return res.status(401).json({ message: "Unauthorized, invalid token." });
+    }
+
+    if ((user.tokenVersion || 0) !== (decoded.tokenVersion || 0)) {
+      return res.status(401).json({ message: "Unauthorized, invalid token." });
+    }
+
+    req.user = user;
     req.token = token;
-    req.userID = userData._id;
-    next();
-  } catch (error) {
-    return res.status(401).json({ msg: "Unauthorized, invalid token." });
+    req.userID = user._id;
+    return next();
+  } catch (_error) {
+    return res.status(401).json({ message: "Unauthorized, invalid token." });
   }
 };
+
 module.exports = authMiddleware;
